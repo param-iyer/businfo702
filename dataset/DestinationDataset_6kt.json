@@ -1,0 +1,17 @@
+{
+	"name": "DestinationDataset_6kt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DW_Azure",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "iris"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,141 @@
+{
+	"name": "df_DimEmployee_LAB_Alt",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWEmployee"
+				},
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWManager"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DW_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DWDimEmployee"
+				}
+			],
+			"transformations": [
+				{
+					"name": "NWEmpMgr"
+				},
+				{
+					"name": "EmpMgrInfo"
+				},
+				{
+					"name": "MergeNames"
+				},
+				{
+					"name": "EmpMgrFinal"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EmployeeID as integer,",
+				"          LastName as string,",
+				"          FirstName as string,",
+				"          Title as string,",
+				"          TitleOfCourtesy as string,",
+				"          BirthDate as timestamp,",
+				"          HireDate as timestamp,",
+				"          Address as string,",
+				"          City as string,",
+				"          Region as string,",
+				"          PostalCode as string,",
+				"          Country as string,",
+				"          HomePhone as string,",
+				"          Extension as string,",
+				"          Photo as binary,",
+				"          Notes as string,",
+				"          ReportsTo as integer,",
+				"          PhotoPath as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'Northwind',",
+				"     tableName: 'Employees',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWEmployee",
+				"source(output(",
+				"          EmployeeID as integer,",
+				"          LastName as string,",
+				"          FirstName as string,",
+				"          Title as string,",
+				"          TitleOfCourtesy as string,",
+				"          BirthDate as timestamp,",
+				"          HireDate as timestamp,",
+				"          Address as string,",
+				"          City as string,",
+				"          Region as string,",
+				"          PostalCode as string,",
+				"          Country as string,",
+				"          HomePhone as string,",
+				"          Extension as string,",
+				"          Photo as binary,",
+				"          Notes as string,",
+				"          ReportsTo as integer,",
+				"          PhotoPath as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'Northwind',",
+				"     tableName: 'Employees',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWManager",
+				"NWEmployee, NWManager join(NWEmployee@ReportsTo == NWManager@EmployeeID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> NWEmpMgr",
+				"NWEmpMgr select(mapColumn(",
+				"          EmployeeID = NWEmployee@EmployeeID,",
+				"          EmpLastName = NWEmployee@LastName,",
+				"          EmpFirstName = NWEmployee@FirstName,",
+				"          EmployeeRole = NWEmployee@Title,",
+				"          MgrLastName = NWManager@LastName,",
+				"          MgrFirstName = NWManager@FirstName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> EmpMgrInfo",
+				"EmpMgrInfo derive(EmployeeName = EmpFirstName+' '+EmpLastName,",
+				"          ManagerName = MgrFirstName+' '+MgrLastName) ~> MergeNames",
+				"MergeNames select(mapColumn(",
+				"          EmployeeID,",
+				"          EmployeeName,",
+				"          EmployeeRole,",
+				"          ManagerName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> EmpMgrFinal",
+				"EmpMgrFinal sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'DimEmployee',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DWDimEmployee"
+			]
+		}
+	}
+}

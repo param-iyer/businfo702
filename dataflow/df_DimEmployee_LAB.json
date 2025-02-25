@@ -1,0 +1,54 @@
+{
+	"name": "df_DimEmployee_LAB",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWEmployee"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DW_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DWDimEmployee"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          EmployeeID as integer,",
+				"          EmployeeName as string,",
+				"          EmployeeRole as string,",
+				"          ManagerName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'SELECT\\n    e.EmployeeID,\\n    e.FirstName+\\' \\'+e.LastName AS EmployeeName,\\n    e.Title AS EmployeeRole,\\n    m.FirstName+\\' \\'+m.LastName AS ManagerName\\nFROM\\n    Northwind.Employees AS e\\nLEFT JOIN\\n    Northwind.Employees AS m\\nON\\n    e.ReportsTo=m.EmployeeID',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWEmployee",
+				"NWEmployee sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'DimEmployee',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DWDimEmployee"
+			]
+		}
+	}
+}

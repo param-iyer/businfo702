@@ -1,0 +1,68 @@
+{
+	"name": "df_FactSale",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWOrderSummary"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DW_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DWFactSale"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DateTimeToDate"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as string,",
+				"          ProductID as integer,",
+				"          OrderDate as timestamp,",
+				"          ShippedDate as timestamp,",
+				"          SaleUnits as integer,",
+				"          ExpectedSaleValue as decimal(19,4),",
+				"          PlannedSaleValue as decimal(19,4),",
+				"          DiscountValue as double,",
+				"          ActualSaleValue as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'SELECT\\n    o.CustomerID,\\n    p.ProductID,\\n    o.OrderDate,\\n    o.ShippedDate,\\n    SUM(od.Quantity) AS SaleUnits,\\n    SUM(od.Quantity*p.UnitPrice) AS ExpectedSaleValue,\\n    SUM(od.Quantity*od.UnitPrice) AS PlannedSaleValue,\\n    SUM(od.Quantity*od.UnitPrice*od.Discount) AS DiscountValue,\\n    SUM(od.Quantity*od.UnitPrice*(1-od.Discount)) AS ActualSaleValue\\nFROM\\n    Northwind.Orders AS o\\nJOIN\\n    Northwind.[Order Details] AS od\\nON\\n    o.OrderID=od.OrderID\\nJOIN\\n    Northwind.Products as p\\nON\\n    od.ProductID=p.ProductID\\nWHERE\\n    ShippedDate IS NOT NULL\\nGROUP BY\\n    o.CustomerID,\\n    p.ProductID,\\n    o.OrderDate,\\n    o.ShippedDate',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWOrderSummary",
+				"NWOrderSummary cast(output(",
+				"          OrderDate as date,",
+				"          ShippedDate as date",
+				"     ),",
+				"     errors: true) ~> DateTimeToDate",
+				"DateTimeToDate sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'FactSale',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DWFactSale"
+			]
+		}
+	}
+}

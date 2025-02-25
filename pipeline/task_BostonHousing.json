@@ -1,0 +1,232 @@
+{
+	"name": "task_BostonHousing",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_mzt",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Destination",
+						"value": "dbo.BostonHousing"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "crim",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "crim",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "zn",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "zn",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "indus",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "indus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "chas",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "chas",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "nox",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "nox",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "rm",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "rm",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "age",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "age",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "dis",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "dis",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "rad",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "rad",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "tax",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "tax",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ptratio",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ptratio",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "b",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "b",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "lstat",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "lstat",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "medv",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "medv",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_mzt",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_mzt",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-02-17T11:31:57Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

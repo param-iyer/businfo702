@@ -1,0 +1,37 @@
+{
+	"name": "ds_country_language",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "csv_folder",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "customer_countries_languages.csv",
+				"container": "cbusinfo702"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "Country",
+				"type": "String"
+			},
+			{
+				"name": "Preferred Language",
+				"type": "String"
+			},
+			{
+				"name": "Proportion",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

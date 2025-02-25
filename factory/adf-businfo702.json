@@ -1,0 +1,9 @@
+{
+	"name": "adf-businfo702",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "c3c0dee1-0611-45ae-b6da-679e1738a761",
+		"tenantId": "d1b36e95-0d50-42e9-958f-b63fa906beaa"
+	}
+}

@@ -1,0 +1,13 @@
+{
+	"name": "BostonHousing",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://uoadls.blob.core.windows.net/businfo702/BostonHousing.xlsx",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

@@ -1,0 +1,163 @@
+{
+	"name": "df_DimProduct",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWProduct"
+				},
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWCategory"
+				},
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWSupplier"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DW_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DWDimProduct"
+				}
+			],
+			"transformations": [
+				{
+					"name": "NWProdCat"
+				},
+				{
+					"name": "SplitDiscontinued"
+				},
+				{
+					"name": "NWProdCatSup"
+				},
+				{
+					"name": "NWProdCatSupActive"
+				},
+				{
+					"name": "AddDummySupplierInfo"
+				},
+				{
+					"name": "NWProdCatSupInactive"
+				},
+				{
+					"name": "NWProdCapSupALL"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ProductID as integer,",
+				"          ProductName as string,",
+				"          SupplierID as integer,",
+				"          CategoryID as integer,",
+				"          QuantityPerUnit as string,",
+				"          UnitPrice as decimal(19,4),",
+				"          UnitsInStock as short,",
+				"          UnitsOnOrder as short,",
+				"          ReorderLevel as short,",
+				"          Discontinued as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'Northwind',",
+				"     tableName: 'Products',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWProduct",
+				"source(output(",
+				"          CategoryID as integer,",
+				"          CategoryName as string,",
+				"          Description as string,",
+				"          Picture as binary",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'Northwind',",
+				"     tableName: 'Categories',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWCategory",
+				"source(output(",
+				"          SupplierID as integer,",
+				"          CompanyName as string,",
+				"          ContactName as string,",
+				"          ContactTitle as string,",
+				"          Address as string,",
+				"          City as string,",
+				"          Region as string,",
+				"          PostalCode as string,",
+				"          Country as string,",
+				"          Phone as string,",
+				"          Fax as string,",
+				"          HomePage as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'Northwind',",
+				"     tableName: 'Suppliers',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWSupplier",
+				"NWProduct, NWCategory join(NWProduct@CategoryID == NWCategory@CategoryID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> NWProdCat",
+				"NWProdCat split(Discontinued==false(),",
+				"     disjoint: false) ~> SplitDiscontinued@(Active, InActive)",
+				"SplitDiscontinued@Active, NWSupplier join(SplitDiscontinued@Active@SupplierID == NWSupplier@SupplierID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> NWProdCatSup",
+				"NWProdCatSup select(mapColumn(",
+				"          ProductID,",
+				"          ProductName,",
+				"          CategoryName,",
+				"          SupplierCompanyName = CompanyName,",
+				"          SupplierCountry = Country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> NWProdCatSupActive",
+				"NWProdCatSupInactive derive(SupplierCompanyName = \"None\",",
+				"          SupplierCountry = \"NA\") ~> AddDummySupplierInfo",
+				"SplitDiscontinued@InActive select(mapColumn(",
+				"          ProductID,",
+				"          ProductName,",
+				"          CategoryName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> NWProdCatSupInactive",
+				"NWProdCatSupActive, AddDummySupplierInfo union(byName: true)~> NWProdCapSupALL",
+				"NWProdCapSupALL sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'DimProduct',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DWDimProduct"
+			]
+		}
+	}
+}

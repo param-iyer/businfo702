@@ -1,0 +1,116 @@
+{
+	"name": "df_DimCustomer",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DB_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NWCustomer"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_country_language",
+						"type": "DatasetReference"
+					},
+					"name": "CSVCountryLanguage"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DW_Azure",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DWDimCustomer"
+				}
+			],
+			"transformations": [
+				{
+					"name": "CustomerContactNameSplit"
+				},
+				{
+					"name": "CustomerInfo"
+				},
+				{
+					"name": "LookupLanguage"
+				},
+				{
+					"name": "CustomerInfoLanguage"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as string,",
+				"          CompanyName as string,",
+				"          ContactName as string,",
+				"          ContactTitle as string,",
+				"          Address as string,",
+				"          City as string,",
+				"          Region as string,",
+				"          PostalCode as string,",
+				"          Country as string,",
+				"          Phone as string,",
+				"          Fax as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'Northwind',",
+				"     tableName: 'Customers',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> NWCustomer",
+				"source(output(",
+				"          Country as string,",
+				"          {Preferred Language} as string,",
+				"          Proportion as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> CSVCountryLanguage",
+				"NWCustomer derive(CustomerContactFirstName = split(ContactName, ' ')[1],",
+				"          CustomerContactLastName = split(ContactName, ' ')[2]) ~> CustomerContactNameSplit",
+				"CustomerContactNameSplit select(mapColumn(",
+				"          CustomerID,",
+				"          CustomerCompanyName = CompanyName,",
+				"          CustomerCountry = Country,",
+				"          CustomerContactFirstName,",
+				"          CustomerContactLastName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> CustomerInfo",
+				"CustomerInfo, CSVCountryLanguage lookup(CustomerCountry == Country,",
+				"     multiple: false,",
+				"     pickup: 'first',",
+				"     asc(Country, true),",
+				"     desc(Proportion, true),",
+				"     broadcast: 'auto')~> LookupLanguage",
+				"LookupLanguage select(mapColumn(",
+				"          CustomerID,",
+				"          CustomerCompanyName,",
+				"          CustomerContactFirstName,",
+				"          CustomerContactLastName,",
+				"          CustomerLanguage = {Preferred Language}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> CustomerInfoLanguage",
+				"CustomerInfoLanguage sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'DimCustomer',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DWDimCustomer"
+			]
+		}
+	}
+}
