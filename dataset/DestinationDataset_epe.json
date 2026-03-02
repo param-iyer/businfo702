@@ -1,0 +1,17 @@
+{
+	"name": "DestinationDataset_epe",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DW_Azure",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Bank_Dataset"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

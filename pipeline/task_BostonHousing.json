@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy_mzt",
+				"name": "Copy_9ib",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -213,20 +213,20 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SourceDataset_mzt",
+						"referenceName": "SourceDataset_9ib",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "DestinationDataset_mzt",
+						"referenceName": "DestinationDataset_9ib",
 						"type": "DatasetReference"
 					}
 				]
 			}
 		],
 		"annotations": [],
-		"lastPublishTime": "2025-02-17T11:31:57Z"
+		"lastPublishTime": "2026-03-01T22:23:35Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

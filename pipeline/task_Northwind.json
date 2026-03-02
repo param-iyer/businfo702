@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "ForEach_c3e",
+				"name": "ForEach_ejs",
 				"type": "ForEach",
 				"dependsOn": [],
 				"userProperties": [],
@@ -14,7 +14,7 @@
 					},
 					"activities": [
 						{
-							"name": "Copy_c3e",
+							"name": "Copy_ejs",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -52,7 +52,7 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "SourceDataset_c3e",
+									"referenceName": "SourceDataset_ejs",
 									"type": "DatasetReference",
 									"parameters": {
 										"cw_table": "@item().source.table"
@@ -61,7 +61,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "DestinationDataset_c3e",
+									"referenceName": "DestinationDataset_ejs",
 									"type": "DatasetReference",
 									"parameters": {
 										"cw_table": "@item().destination.table"
@@ -455,7 +455,7 @@
 			}
 		},
 		"annotations": [],
-		"lastPublishTime": "2025-02-17T11:48:17Z"
+		"lastPublishTime": "2026-03-01T22:19:15Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

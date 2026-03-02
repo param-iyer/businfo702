@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy_6kt",
+				"name": "Copy_1ws",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -109,20 +109,20 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SourceDataset_6kt",
+						"referenceName": "SourceDataset_1ws",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "DestinationDataset_6kt",
+						"referenceName": "DestinationDataset_1ws",
 						"type": "DatasetReference"
 					}
 				]
 			}
 		],
 		"annotations": [],
-		"lastPublishTime": "2025-02-17T11:17:54Z"
+		"lastPublishTime": "2026-03-01T22:14:54Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

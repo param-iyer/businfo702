@@ -1,0 +1,64 @@
+{
+	"name": "SourceDataset_epe",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Bank_Dataset",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"ID": {
+					"type": "integer"
+				},
+				"Age": {
+					"type": "integer"
+				},
+				"Experience": {
+					"type": "integer"
+				},
+				"Income": {
+					"type": "integer"
+				},
+				"ZIP Code": {
+					"type": "integer"
+				},
+				"Family": {
+					"type": "integer"
+				},
+				"CCAvg": {
+					"type": "number"
+				},
+				"Education": {
+					"type": "integer"
+				},
+				"Mortgage": {
+					"type": "integer"
+				},
+				"Personal Loan": {
+					"type": "integer"
+				},
+				"Securities Account": {
+					"type": "integer"
+				},
+				"CD Account": {
+					"type": "integer"
+				},
+				"Online": {
+					"type": "integer"
+				},
+				"Credit Card": {
+					"type": "integer"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

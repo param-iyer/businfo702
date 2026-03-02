@@ -1,11 +1,11 @@
 {
-	"name": "BostonHousing",
+	"name": "Bank_Dataset",
 	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"annotations": [],
 		"type": "HttpServer",
 		"typeProperties": {
-			"url": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/BostonHousing.xlsx",
+			"url": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/Bank_Dataset.json",
 			"enableServerCertificateValidation": true,
 			"authenticationType": "Anonymous"
 		}
