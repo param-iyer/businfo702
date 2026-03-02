@@ -1,0 +1,9 @@
+{
+	"name": "adf-businfo702-viye279",
+	"location": "newzealandnorth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "14b3d815-ab89-40ff-914e-f698a41cd1c2",
+		"tenantId": "d1b36e95-0d50-42e9-958f-b63fa906beaa"
+	}
+}

@@ -1,0 +1,107 @@
+{
+	"name": "task_Bank_Dataset",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_epe",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Destination",
+						"value": "dbo.Bank_Dataset"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['ID']"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int16"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Age']"
+								},
+								"sink": {
+									"name": "Age",
+									"type": "Int16"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Experience']"
+								},
+								"sink": {
+									"name": "Experience",
+									"type": "Int16"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Income']"
+								},
+								"sink": {
+									"name": "Income",
+									"type": "Int16"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ZIP Code']"
+								},
+								"sink": {
+									"name": "ZIP Code",
+									"type": "Int32"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_epe",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_epe",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-03-01T22:31:34Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
