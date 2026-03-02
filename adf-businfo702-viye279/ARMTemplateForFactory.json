@@ -1965,7 +1965,7 @@
 					"location": {
 						"type": "AzureBlobStorageLocation",
 						"fileName": "customer_countries_languages.csv",
-						"container": "cbusinfo702"
+						"container": "c-businfo702"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
