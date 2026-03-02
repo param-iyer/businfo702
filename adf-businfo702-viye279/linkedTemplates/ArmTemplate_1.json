@@ -1,0 +1,2080 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-businfo702-viye279"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_country_language')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "csv_folder",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "customer_countries_languages.csv",
+						"container": "cbusinfo702"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Country",
+						"type": "String"
+					},
+					{
+						"name": "Preferred Language",
+						"type": "String"
+					},
+					{
+						"name": "Proportion",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_DimDate')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimDate"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DW_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DWDimDate"
+						}
+					],
+					"transformations": [
+						{
+							"name": "YearFilter"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          DateKey as date,",
+						"          YearNumber as integer,",
+						"          MonthName as string,",
+						"          DayOfWeek as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'DimDate702',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> DimDate",
+						"DimDate filter(between(YearNumber, 1996, 1998)) ~> YearFilter",
+						"YearFilter sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'DimDate',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DWDimDate"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_DimEmployee_LAB')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWEmployee"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DW_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DWDimEmployee"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          EmployeeID as integer,",
+						"          EmployeeName as string,",
+						"          EmployeeRole as string,",
+						"          ManagerName as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'query',",
+						"     store: 'sqlserver',",
+						"     query: 'SELECT\\n    e.EmployeeID,\\n    e.FirstName+\\' \\'+e.LastName AS EmployeeName,\\n    e.Title AS EmployeeRole,\\n    m.FirstName+\\' \\'+m.LastName AS ManagerName\\nFROM\\n    Northwind.Employees AS e\\nLEFT JOIN\\n    Northwind.Employees AS m\\nON\\n    e.ReportsTo=m.EmployeeID',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWEmployee",
+						"NWEmployee sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'DimEmployee',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DWDimEmployee"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_DimEmployee_LAB_Alt')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWEmployee"
+						},
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWManager"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DW_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DWDimEmployee"
+						}
+					],
+					"transformations": [
+						{
+							"name": "NWEmpMgr"
+						},
+						{
+							"name": "EmpMgrInfo"
+						},
+						{
+							"name": "MergeNames"
+						},
+						{
+							"name": "EmpMgrFinal"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          EmployeeID as integer,",
+						"          LastName as string,",
+						"          FirstName as string,",
+						"          Title as string,",
+						"          TitleOfCourtesy as string,",
+						"          BirthDate as timestamp,",
+						"          HireDate as timestamp,",
+						"          Address as string,",
+						"          City as string,",
+						"          Region as string,",
+						"          PostalCode as string,",
+						"          Country as string,",
+						"          HomePhone as string,",
+						"          Extension as string,",
+						"          Photo as binary,",
+						"          Notes as string,",
+						"          ReportsTo as integer,",
+						"          PhotoPath as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'Northwind',",
+						"     tableName: 'Employees',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWEmployee",
+						"source(output(",
+						"          EmployeeID as integer,",
+						"          LastName as string,",
+						"          FirstName as string,",
+						"          Title as string,",
+						"          TitleOfCourtesy as string,",
+						"          BirthDate as timestamp,",
+						"          HireDate as timestamp,",
+						"          Address as string,",
+						"          City as string,",
+						"          Region as string,",
+						"          PostalCode as string,",
+						"          Country as string,",
+						"          HomePhone as string,",
+						"          Extension as string,",
+						"          Photo as binary,",
+						"          Notes as string,",
+						"          ReportsTo as integer,",
+						"          PhotoPath as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'Northwind',",
+						"     tableName: 'Employees',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWManager",
+						"NWEmployee, NWManager join(NWEmployee@ReportsTo == NWManager@EmployeeID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> NWEmpMgr",
+						"NWEmpMgr select(mapColumn(",
+						"          EmployeeID = NWEmployee@EmployeeID,",
+						"          EmpLastName = NWEmployee@LastName,",
+						"          EmpFirstName = NWEmployee@FirstName,",
+						"          EmployeeRole = NWEmployee@Title,",
+						"          MgrLastName = NWManager@LastName,",
+						"          MgrFirstName = NWManager@FirstName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> EmpMgrInfo",
+						"EmpMgrInfo derive(EmployeeName = EmpFirstName+' '+EmpLastName,",
+						"          ManagerName = MgrFirstName+' '+MgrLastName) ~> MergeNames",
+						"MergeNames select(mapColumn(",
+						"          EmployeeID,",
+						"          EmployeeName,",
+						"          EmployeeRole,",
+						"          ManagerName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> EmpMgrFinal",
+						"EmpMgrFinal sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'DimEmployee',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DWDimEmployee"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_DimProduct')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWProduct"
+						},
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWCategory"
+						},
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWSupplier"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DW_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DWDimProduct"
+						}
+					],
+					"transformations": [
+						{
+							"name": "NWProdCat"
+						},
+						{
+							"name": "SplitDiscontinued"
+						},
+						{
+							"name": "NWProdCatSup"
+						},
+						{
+							"name": "NWProdCatSupActive"
+						},
+						{
+							"name": "AddDummySupplierInfo"
+						},
+						{
+							"name": "NWProdCatSupInactive"
+						},
+						{
+							"name": "NWProdCapSupALL"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ProductID as integer,",
+						"          ProductName as string,",
+						"          SupplierID as integer,",
+						"          CategoryID as integer,",
+						"          QuantityPerUnit as string,",
+						"          UnitPrice as decimal(19,4),",
+						"          UnitsInStock as short,",
+						"          UnitsOnOrder as short,",
+						"          ReorderLevel as short,",
+						"          Discontinued as boolean",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'Northwind',",
+						"     tableName: 'Products',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWProduct",
+						"source(output(",
+						"          CategoryID as integer,",
+						"          CategoryName as string,",
+						"          Description as string,",
+						"          Picture as binary",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'Northwind',",
+						"     tableName: 'Categories',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWCategory",
+						"source(output(",
+						"          SupplierID as integer,",
+						"          CompanyName as string,",
+						"          ContactName as string,",
+						"          ContactTitle as string,",
+						"          Address as string,",
+						"          City as string,",
+						"          Region as string,",
+						"          PostalCode as string,",
+						"          Country as string,",
+						"          Phone as string,",
+						"          Fax as string,",
+						"          HomePage as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'Northwind',",
+						"     tableName: 'Suppliers',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWSupplier",
+						"NWProduct, NWCategory join(NWProduct@CategoryID == NWCategory@CategoryID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> NWProdCat",
+						"NWProdCat split(Discontinued==false(),",
+						"     disjoint: false) ~> SplitDiscontinued@(Active, InActive)",
+						"SplitDiscontinued@Active, NWSupplier join(SplitDiscontinued@Active@SupplierID == NWSupplier@SupplierID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> NWProdCatSup",
+						"NWProdCatSup select(mapColumn(",
+						"          ProductID,",
+						"          ProductName,",
+						"          CategoryName,",
+						"          SupplierCompanyName = CompanyName,",
+						"          SupplierCountry = Country",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> NWProdCatSupActive",
+						"NWProdCatSupInactive derive(SupplierCompanyName = \"None\",",
+						"          SupplierCountry = \"NA\") ~> AddDummySupplierInfo",
+						"SplitDiscontinued@InActive select(mapColumn(",
+						"          ProductID,",
+						"          ProductName,",
+						"          CategoryName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> NWProdCatSupInactive",
+						"NWProdCatSupActive, AddDummySupplierInfo union(byName: true)~> NWProdCapSupALL",
+						"NWProdCapSupALL sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'DimProduct',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DWDimProduct"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_FactSale')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWOrderSummary"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DW_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DWFactSale"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DateTimeToDate"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as string,",
+						"          ProductID as integer,",
+						"          OrderDate as timestamp,",
+						"          ShippedDate as timestamp,",
+						"          SaleUnits as integer,",
+						"          ExpectedSaleValue as decimal(19,4),",
+						"          PlannedSaleValue as decimal(19,4),",
+						"          DiscountValue as double,",
+						"          ActualSaleValue as double",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'query',",
+						"     store: 'sqlserver',",
+						"     query: 'SELECT\\n    o.CustomerID,\\n    p.ProductID,\\n    o.OrderDate,\\n    o.ShippedDate,\\n    SUM(od.Quantity) AS SaleUnits,\\n    SUM(od.Quantity*p.UnitPrice) AS ExpectedSaleValue,\\n    SUM(od.Quantity*od.UnitPrice) AS PlannedSaleValue,\\n    SUM(od.Quantity*od.UnitPrice*od.Discount) AS DiscountValue,\\n    SUM(od.Quantity*od.UnitPrice*(1-od.Discount)) AS ActualSaleValue\\nFROM\\n    Northwind.Orders AS o\\nJOIN\\n    Northwind.[Order Details] AS od\\nON\\n    o.OrderID=od.OrderID\\nJOIN\\n    Northwind.Products as p\\nON\\n    od.ProductID=p.ProductID\\nWHERE\\n    ShippedDate IS NOT NULL\\nGROUP BY\\n    o.CustomerID,\\n    p.ProductID,\\n    o.OrderDate,\\n    o.ShippedDate',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWOrderSummary",
+						"NWOrderSummary cast(output(",
+						"          OrderDate as date,",
+						"          ShippedDate as date",
+						"     ),",
+						"     errors: true) ~> DateTimeToDate",
+						"DateTimeToDate sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'FactSale',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DWFactSale"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_FactSale_LAB')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWOrderSummary"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DW_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DWFactSale"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DateTimeToDate"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as string,",
+						"          ProductID as integer,",
+						"          EmployeeID as integer,",
+						"          OrderDate as timestamp,",
+						"          ShippedDate as timestamp,",
+						"          SaleUnits as integer,",
+						"          ExpectedSaleValue as decimal(19,4),",
+						"          PlannedSaleValue as decimal(19,4),",
+						"          DiscountValue as double,",
+						"          ActualSaleValue as double",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'query',",
+						"     store: 'sqlserver',",
+						"     query: 'SELECT\\n    o.CustomerID,\\n    p.ProductID,\\n    o.EmployeeID,\\n    o.OrderDate,\\n    o.ShippedDate,\\n    SUM(od.Quantity) AS SaleUnits,\\n    SUM(od.Quantity*p.UnitPrice) AS ExpectedSaleValue,\\n    SUM(od.Quantity*od.UnitPrice) AS PlannedSaleValue,\\n    SUM(od.Quantity*od.UnitPrice*od.Discount) AS DiscountValue,\\n    SUM(od.Quantity*od.UnitPrice*(1-od.Discount)) AS ActualSaleValue\\nFROM\\n    Northwind.Orders AS o\\nJOIN\\n    Northwind.[Order Details] AS od\\nON\\n    o.OrderID=od.OrderID\\nJOIN\\n    Northwind.Products as p\\nON\\n    od.ProductID=p.ProductID\\nWHERE\\n    ShippedDate IS NOT NULL\\nGROUP BY\\n    o.CustomerID,\\n    p.ProductID,\\n    o.EmployeeID,\\n    o.OrderDate,\\n    o.ShippedDate',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWOrderSummary",
+						"NWOrderSummary cast(output(",
+						"          OrderDate as date,",
+						"          ShippedDate as date",
+						"     ),",
+						"     errors: true) ~> DateTimeToDate",
+						"DateTimeToDate sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'FactSale',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DWFactSale"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/task_Bank_Dataset')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_epe",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Destination",
+								"value": "dbo.Bank_Dataset"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['ID']"
+										},
+										"sink": {
+											"name": "ID",
+											"type": "Int16"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Age']"
+										},
+										"sink": {
+											"name": "Age",
+											"type": "Int16"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Experience']"
+										},
+										"sink": {
+											"name": "Experience",
+											"type": "Int16"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Income']"
+										},
+										"sink": {
+											"name": "Income",
+											"type": "Int16"
+										}
+									},
+									{
+										"source": {
+											"path": "$['ZIP Code']"
+										},
+										"sink": {
+											"name": "ZIP Code",
+											"type": "Int32"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_epe",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_epe",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-03-01T22:31:34Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/task_BostonHousing')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_9ib",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Destination",
+								"value": "dbo.BostonHousing"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "crim",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "crim",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "zn",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "zn",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "indus",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "indus",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "chas",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "chas",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "nox",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "nox",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "rm",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "rm",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "age",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "age",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "dis",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "dis",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "rad",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "rad",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "tax",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "tax",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "ptratio",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "ptratio",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "b",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "b",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "lstat",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "lstat",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "medv",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "medv",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_9ib",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_9ib",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-03-01T22:23:35Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/task_Northwind')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_ejs",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.cw_items",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy_ejs",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [
+										{
+											"name": "Source",
+											"value": "Northwind.@{item().source.table}"
+										},
+										{
+											"name": "Destination",
+											"value": "Northwind.@{item().destination.table}"
+										}
+									],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"tableOption": "autoCreate"
+										},
+										"enableStaging": false,
+										"validateDataConsistency": false,
+										"translator": {
+											"value": "@item().copyActivity.translator",
+											"type": "Expression"
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "SourceDataset_ejs",
+											"type": "DatasetReference",
+											"parameters": {
+												"cw_table": "@item().source.table"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DestinationDataset_ejs",
+											"type": "DatasetReference",
+											"parameters": {
+												"cw_table": "@item().destination.table"
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"cw_items": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": {
+									"table": "Categories"
+								},
+								"destination": {
+									"table": "Categories"
+								},
+								"copyActivity": {
+									"translator": {
+										"type": "TabularTranslator",
+										"mappings": [
+											{
+												"source": {
+													"name": "CategoryID",
+													"type": "Int32",
+													"physicalType": "int"
+												},
+												"sink": {
+													"name": "CategoryID",
+													"type": "Int32",
+													"physicalType": "int"
+												}
+											},
+											{
+												"source": {
+													"name": "CategoryName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "CategoryName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "Description",
+													"type": "String",
+													"physicalType": "ntext"
+												},
+												"sink": {
+													"name": "Description",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "Picture",
+													"type": "Byte[]",
+													"physicalType": "image"
+												},
+												"sink": {
+													"name": "Picture",
+													"type": "Byte[]",
+													"physicalType": "varbinary"
+												}
+											}
+										],
+										"typeConversion": true,
+										"typeConversionSettings": {
+											"allowDataTruncation": true,
+											"treatBooleanAsNumber": false
+										}
+									}
+								}
+							},
+							{
+								"source": {
+									"table": "Products"
+								},
+								"destination": {
+									"table": "Products"
+								},
+								"copyActivity": {
+									"translator": {
+										"type": "TabularTranslator",
+										"mappings": [
+											{
+												"source": {
+													"name": "ProductID",
+													"type": "Int32",
+													"physicalType": "int"
+												},
+												"sink": {
+													"name": "ProductID",
+													"type": "Int32",
+													"physicalType": "int"
+												}
+											},
+											{
+												"source": {
+													"name": "ProductName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "ProductName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "SupplierID",
+													"type": "Int32",
+													"physicalType": "int"
+												},
+												"sink": {
+													"name": "SupplierID",
+													"type": "Int32",
+													"physicalType": "int"
+												}
+											},
+											{
+												"source": {
+													"name": "CategoryID",
+													"type": "Int32",
+													"physicalType": "int"
+												},
+												"sink": {
+													"name": "CategoryID",
+													"type": "Int32",
+													"physicalType": "int"
+												}
+											},
+											{
+												"source": {
+													"name": "QuantityPerUnit",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "QuantityPerUnit",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "UnitPrice",
+													"type": "Decimal",
+													"physicalType": "money",
+													"scale": 4,
+													"precision": 19
+												},
+												"sink": {
+													"name": "UnitPrice",
+													"type": "Decimal",
+													"physicalType": "decimal"
+												}
+											},
+											{
+												"source": {
+													"name": "UnitsInStock",
+													"type": "Int16",
+													"physicalType": "smallint"
+												},
+												"sink": {
+													"name": "UnitsInStock",
+													"type": "Int16",
+													"physicalType": "smallint"
+												}
+											},
+											{
+												"source": {
+													"name": "UnitsOnOrder",
+													"type": "Int16",
+													"physicalType": "smallint"
+												},
+												"sink": {
+													"name": "UnitsOnOrder",
+													"type": "Int16",
+													"physicalType": "smallint"
+												}
+											},
+											{
+												"source": {
+													"name": "ReorderLevel",
+													"type": "Int16",
+													"physicalType": "smallint"
+												},
+												"sink": {
+													"name": "ReorderLevel",
+													"type": "Int16",
+													"physicalType": "smallint"
+												}
+											},
+											{
+												"source": {
+													"name": "Discontinued",
+													"type": "Boolean",
+													"physicalType": "bit"
+												},
+												"sink": {
+													"name": "Discontinued",
+													"type": "Boolean",
+													"physicalType": "bit"
+												}
+											}
+										],
+										"typeConversion": true,
+										"typeConversionSettings": {
+											"allowDataTruncation": true,
+											"treatBooleanAsNumber": false
+										}
+									}
+								}
+							},
+							{
+								"source": {
+									"table": "Suppliers"
+								},
+								"destination": {
+									"table": "Suppliers"
+								},
+								"copyActivity": {
+									"translator": {
+										"type": "TabularTranslator",
+										"mappings": [
+											{
+												"source": {
+													"name": "SupplierID",
+													"type": "Int32",
+													"physicalType": "int"
+												},
+												"sink": {
+													"name": "SupplierID",
+													"type": "Int32",
+													"physicalType": "int"
+												}
+											},
+											{
+												"source": {
+													"name": "CompanyName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "CompanyName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "ContactName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "ContactName",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "ContactTitle",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "ContactTitle",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "Address",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "Address",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "City",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "City",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "Region",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "Region",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "PostalCode",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "PostalCode",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "Country",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "Country",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "Phone",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "Phone",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "Fax",
+													"type": "String",
+													"physicalType": "nvarchar"
+												},
+												"sink": {
+													"name": "Fax",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											},
+											{
+												"source": {
+													"name": "HomePage",
+													"type": "String",
+													"physicalType": "ntext"
+												},
+												"sink": {
+													"name": "HomePage",
+													"type": "String",
+													"physicalType": "nvarchar"
+												}
+											}
+										],
+										"typeConversion": true,
+										"typeConversionSettings": {
+											"allowDataTruncation": true,
+											"treatBooleanAsNumber": false
+										}
+									}
+								}
+							}
+						]
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-03-01T22:19:15Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/task_iris')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_1ws",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Destination",
+								"value": "dbo.iris"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings",
+									"skipLineCount": 0
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "sepal.length",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "sepal.length",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "sepal.width",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "sepal.width",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "petal.length",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "petal.length",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "petal.width",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "petal.width",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "variety",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "variety",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_1ws",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_1ws",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-03-01T22:14:54Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_DimCustomer')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DB_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "NWCustomer"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_country_language",
+								"type": "DatasetReference"
+							},
+							"name": "CSVCountryLanguage"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DW_Azure",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DWDimCustomer"
+						}
+					],
+					"transformations": [
+						{
+							"name": "CustomerContactNameSplit"
+						},
+						{
+							"name": "CustomerInfo"
+						},
+						{
+							"name": "LookupLanguage"
+						},
+						{
+							"name": "CustomerInfoLanguage"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as string,",
+						"          CompanyName as string,",
+						"          ContactName as string,",
+						"          ContactTitle as string,",
+						"          Address as string,",
+						"          City as string,",
+						"          Region as string,",
+						"          PostalCode as string,",
+						"          Country as string,",
+						"          Phone as string,",
+						"          Fax as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'Northwind',",
+						"     tableName: 'Customers',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> NWCustomer",
+						"source(output(",
+						"          Country as string,",
+						"          {Preferred Language} as string,",
+						"          Proportion as double",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> CSVCountryLanguage",
+						"NWCustomer derive(CustomerContactFirstName = split(ContactName, ' ')[1],",
+						"          CustomerContactLastName = split(ContactName, ' ')[2]) ~> CustomerContactNameSplit",
+						"CustomerContactNameSplit select(mapColumn(",
+						"          CustomerID,",
+						"          CustomerCompanyName = CompanyName,",
+						"          CustomerCountry = Country,",
+						"          CustomerContactFirstName,",
+						"          CustomerContactLastName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> CustomerInfo",
+						"CustomerInfo, CSVCountryLanguage lookup(CustomerCountry == Country,",
+						"     multiple: false,",
+						"     pickup: 'first',",
+						"     asc(Country, true),",
+						"     desc(Proportion, true),",
+						"     broadcast: 'auto')~> LookupLanguage",
+						"LookupLanguage select(mapColumn(",
+						"          CustomerID,",
+						"          CustomerCompanyName,",
+						"          CustomerContactFirstName,",
+						"          CustomerContactLastName,",
+						"          CustomerLanguage = {Preferred Language}",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> CustomerInfoLanguage",
+						"CustomerInfoLanguage sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'DimCustomer',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DWDimCustomer"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_country_language')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_ETL_DW')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "df_DimProduct",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_DimDate",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_DimProduct",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"NWProduct": {},
+									"NWCategory": {},
+									"NWSupplier": {},
+									"DWDimProduct": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_DimCustomer",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_DimDate",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_DimCustomer",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"NWCustomer": {},
+									"CSVCountryLanguage": {},
+									"DWDimCustomer": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_DimDate",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_DimDate",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"DimDate": {},
+									"DWDimDate": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_FactSale",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_DimProduct",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "df_DimCustomer",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_FactSale",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"NWOrderSummary": {},
+									"DWFactSale": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-02-25T02:17:06Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_DimProduct')]",
+				"[concat(variables('factoryId'), '/dataflows/df_DimCustomer')]",
+				"[concat(variables('factoryId'), '/dataflows/df_DimDate')]",
+				"[concat(variables('factoryId'), '/dataflows/df_FactSale')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_ETL_DW_LAB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "df_DimProduct",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_DimDate",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_DimProduct",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"NWProduct": {},
+									"NWCategory": {},
+									"NWSupplier": {},
+									"DWDimProduct": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_DimCustomer",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_DimDate",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "df_DimEmployee_LAB",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_DimCustomer",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"NWCustomer": {},
+									"CSVCountryLanguage": {},
+									"DWDimCustomer": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_DimDate",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_DimDate",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"DimDate": {},
+									"DWDimDate": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_DimEmployee_LAB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_DimEmployee_LAB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"NWEmployee": {},
+									"DWDimEmployee": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_FactSale_LAB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_DimProduct",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "df_DimCustomer",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_FactSale_LAB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"NWOrderSummary": {},
+									"DWFactSale": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-02-25T02:17:06Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_DimProduct')]",
+				"[concat(variables('factoryId'), '/dataflows/df_DimCustomer')]",
+				"[concat(variables('factoryId'), '/dataflows/df_DimDate')]",
+				"[concat(variables('factoryId'), '/dataflows/df_DimEmployee_LAB')]",
+				"[concat(variables('factoryId'), '/dataflows/df_FactSale_LAB')]"
+			]
+		}
+	]
+}

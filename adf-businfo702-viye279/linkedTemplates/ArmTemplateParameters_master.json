@@ -1,0 +1,51 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-businfo702-viye279"
+		},
+		"DB_Azure_password": {
+			"value": ""
+		},
+		"DW_Azure_password": {
+			"value": ""
+		},
+		"csv_folder_connectionString": {
+			"value": ""
+		},
+		"Bank_Dataset_properties_typeProperties_url": {
+			"value": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/Bank_Dataset.json"
+		},
+		"BostonHousing_properties_typeProperties_url": {
+			"value": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/BostonHousing.xlsx"
+		},
+		"DB_Azure_properties_typeProperties_server": {
+			"value": "sqlsvr-uoa-businfo702.database.windows.net"
+		},
+		"DB_Azure_properties_typeProperties_database": {
+			"value": "BUSINFO_702_2026_Q1"
+		},
+		"DB_Azure_properties_typeProperties_userName": {
+			"value": "businfo702"
+		},
+		"DW_Azure_properties_typeProperties_server": {
+			"value": "sqlsvr-uoa-viye279.database.windows.net"
+		},
+		"DW_Azure_properties_typeProperties_database": {
+			"value": "DW_BUSINFO_702"
+		},
+		"DW_Azure_properties_typeProperties_userName": {
+			"value": "u_businfo702_project"
+		},
+		"iris_properties_typeProperties_url": {
+			"value": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/iris.csv"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

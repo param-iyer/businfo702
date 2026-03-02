@@ -1,0 +1,146 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-businfo702-viye279"
+		},
+		"DB_Azure_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'DB_Azure'"
+		},
+		"DW_Azure_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'DW_Azure'"
+		},
+		"csv_folder_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'csv_folder'"
+		},
+		"Bank_Dataset_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/Bank_Dataset.json"
+		},
+		"BostonHousing_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/BostonHousing.xlsx"
+		},
+		"DB_Azure_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sqlsvr-uoa-businfo702.database.windows.net"
+		},
+		"DB_Azure_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "BUSINFO_702_2026_Q1"
+		},
+		"DB_Azure_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "businfo702"
+		},
+		"DW_Azure_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sqlsvr-uoa-viye279.database.windows.net"
+		},
+		"DW_Azure_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "DW_BUSINFO_702"
+		},
+		"DW_Azure_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "u_businfo702_project"
+		},
+		"iris_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sabusinfo702viye279.blob.core.windows.net/c-businfo702/iris.csv"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "adf-businfo702-viye279_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"DB_Azure_password": {
+						"value": "[parameters('DB_Azure_password')]"
+					},
+					"DW_Azure_password": {
+						"value": "[parameters('DW_Azure_password')]"
+					},
+					"csv_folder_connectionString": {
+						"value": "[parameters('csv_folder_connectionString')]"
+					},
+					"Bank_Dataset_properties_typeProperties_url": {
+						"value": "[parameters('Bank_Dataset_properties_typeProperties_url')]"
+					},
+					"BostonHousing_properties_typeProperties_url": {
+						"value": "[parameters('BostonHousing_properties_typeProperties_url')]"
+					},
+					"DB_Azure_properties_typeProperties_server": {
+						"value": "[parameters('DB_Azure_properties_typeProperties_server')]"
+					},
+					"DB_Azure_properties_typeProperties_database": {
+						"value": "[parameters('DB_Azure_properties_typeProperties_database')]"
+					},
+					"DB_Azure_properties_typeProperties_userName": {
+						"value": "[parameters('DB_Azure_properties_typeProperties_userName')]"
+					},
+					"DW_Azure_properties_typeProperties_server": {
+						"value": "[parameters('DW_Azure_properties_typeProperties_server')]"
+					},
+					"DW_Azure_properties_typeProperties_database": {
+						"value": "[parameters('DW_Azure_properties_typeProperties_database')]"
+					},
+					"DW_Azure_properties_typeProperties_userName": {
+						"value": "[parameters('DW_Azure_properties_typeProperties_userName')]"
+					},
+					"iris_properties_typeProperties_url": {
+						"value": "[parameters('iris_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "adf-businfo702-viye279_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-businfo702-viye279_ArmTemplate_0')]"
+			]
+		}
+	]
+}
